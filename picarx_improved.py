@@ -1,19 +1,23 @@
-# from ezblock import Servo,PWM,fileDB,Pin,ADC
-from servo import Servo
-from pwm import PWM
-from pin import Pin
-from adc import ADC
-from filedb import fileDB
 import time
+from filedb import fileDB
+
 try:
-    from ezblock import *
-    from ezblock import __reset_mcu__
-    __reset_mcu__()
-    time.sleep(0.01)
+    from servo import Servo
+    from pwm import PWM
+    from pin import Pin
+    from adc import ADC
+
+    piFlag = True
 except ImportError:
-    print("This computer does not appear to be a PiCar-X system (exblock is not present). Shadowing hardware calls"
-          "with substitute functions...")
-    from sim_ezblock import *
+    print('This computer does not appear to be a PiCar-X system (exblock is not present). Shadowing hardware calls '
+          'with substitute functions...')
+
+    from sim_servo import Servo
+    from sim_pwm import PWM
+    from sim_pin import Pin
+    from sim_adc import ADC
+
+    piFlag = False
 
 class Picarx(object):
     PERIOD = 4095
@@ -24,10 +28,20 @@ class Picarx(object):
         self.dir_servo_pin = Servo(PWM('P2'))
         self.camera_servo_pin1 = Servo(PWM('P0'))
         self.camera_servo_pin2 = Servo(PWM('P1'))
-        self.config_flie = fileDB('/home/pi/.config')
-        self.dir_cal_value = int(self.config_flie.get("picarx_dir_servo", default_value=0))
-        self.cam_cal_value_1 = int(self.config_flie.get("picarx_cam1_servo", default_value=0))
-        self.cam_cal_value_2 = int(self.config_flie.get("picarx_cam2_servo", default_value=0))
+
+        # checking for a config file
+        print(piFlag)
+        if piFlag:
+            # if we are on a raspberrypi
+            self.config_file = fileDB('/home/colin/.picar_config')
+        else:
+            # otherwise we are on xps-coamitch (ubuntu 20.04)
+            self.config_file = fileDB('/home/colin/Dropbox/OSU/ROB599/RobotSystemRepo')
+            print('should have made it here.')
+
+        self.dir_cal_value = int(self.config_file.get("picarx_dir_servo", default_value=0))
+        self.cam_cal_value_1 = int(self.config_file.get("picarx_cam1_servo", default_value=0))
+        self.cam_cal_value_2 = int(self.config_file.get("picarx_cam2_servo", default_value=0))
         self.dir_servo_pin.angle(self.dir_cal_value)
         self.camera_servo_pin1.angle(self.cam_cal_value_1)
         self.camera_servo_pin2.angle(self.cam_cal_value_2)
@@ -44,7 +58,7 @@ class Picarx(object):
 
         self.motor_direction_pins = [self.left_rear_dir_pin, self.right_rear_dir_pin]
         self.motor_speed_pins = [self.left_rear_pwm_pin, self.right_rear_pwm_pin]
-        self.cali_dir_value = self.config_flie.get("picarx_dir_motor", default_value="[1,1]")
+        self.cali_dir_value = self.config_file.get("picarx_dir_motor", default_value="[1,1]")
         self.cali_dir_value = [int(i.strip()) for i in self.cali_dir_value.strip("[]").split(",")]
         self.cali_speed_value = [0, 0]
         self.dir_current_angle = 0
@@ -88,13 +102,13 @@ class Picarx(object):
         motor -= 1
         if value == 1:
             self.cali_dir_value[motor] = -1 * self.cali_dir_value[motor]
-        self.config_flie.set("picarx_dir_motor", self.cali_dir_value)
+        self.config_file.set("picarx_dir_motor", self.cali_dir_value)
 
     def dir_servo_angle_calibration(self,value):
         # global dir_cal_value
         self.dir_cal_value = value
         print("calibrationdir_cal_value:",self.dir_cal_value)
-        self.config_flie.set("picarx_dir_servo", "%s"%value)
+        self.config_file.set("picarx_dir_servo", "%s" % value)
         self.dir_servo_pin.angle(value)
 
     def set_dir_servo_angle(self,value):
@@ -109,14 +123,14 @@ class Picarx(object):
     def camera_servo1_angle_calibration(self,value):
         # global cam_cal_value_1
         self.cam_cal_value_1 = value
-        self.config_flie.set("picarx_cam1_servo", "%s"%value)
+        self.config_file.set("picarx_cam1_servo", "%s" % value)
         print("cam_cal_value_1:",self.cam_cal_value_1)
         self.camera_servo_pin1.angle(value)
 
     def camera_servo2_angle_calibration(self,value):
         # global cam_cal_value_2
         self.cam_cal_value_2 = value
-        self.config_flie.set("picarx_cam2_servo", "%s"%value)
+        self.config_file.set("picarx_cam2_servo", "%s" % value)
         print("picarx_cam2_servo:",self.cam_cal_value_2)
         self.camera_servo_pin2.angle(value)
 
