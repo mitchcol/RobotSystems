@@ -1,5 +1,8 @@
 import time
 from filedb import fileDB
+import logging
+from logdecorator import log_on_start, log_on_end, log_on_error
+import atexit
 
 try:
     from servo import Servo
@@ -18,6 +21,14 @@ except ImportError:
     from sim_adc import ADC
 
     piFlag = False
+
+# setting up basic logging info
+logging_format = '%(asctime)s: %(message)s'
+logging.basicConfig(format=logging_format, level=logging.INFO, datefmt='%H:%M:%S')
+
+# setting logging level to debug
+# this line serves as a switch for printing debug messages. commenting this suppresses these messages
+logging.getLogger().setLevel(logging.DEBUG)
 
 class Picarx(object):
     PERIOD = 4095
@@ -67,7 +78,7 @@ class Picarx(object):
             pin.period(self.PERIOD)
             pin.prescaler(self.PRESCALER)
 
-    def set_motor_speed(self,motor,speed):
+    def set_motor_speed(self, motor, speed):
         # global cali_speed_value,cali_dir_value
         motor -= 1
         if speed >= 0:
@@ -153,11 +164,11 @@ class Picarx(object):
         adc_value_list.append(self.S2.read())
         return adc_value_list
 
-    def set_power(self,speed):
+    def set_power(self, speed):
         self.set_motor_speed(1, speed)
         self.set_motor_speed(2, speed)
 
-    def backward(self,speed):
+    def backward(self, speed):
         current_angle = self.dir_current_angle
         if current_angle != 0:
             abs_current_angle = abs(current_angle)
@@ -176,7 +187,7 @@ class Picarx(object):
             self.set_motor_speed(1, -1*speed)
             self.set_motor_speed(2, speed)
 
-    def forward(self,speed):
+    def forward(self, speed):
         current_angle = self.dir_current_angle
         if current_angle != 0:
             abs_current_angle = abs(current_angle)
@@ -224,6 +235,11 @@ class Picarx(object):
         cm = round(during * 340 / 2 * 100, 2)
         #print(cm)
         return cm
+
+    @atexit.register
+    def zeroMotors(self):
+        self.stop()
+
 
 if __name__ == "__main__":
     px = Picarx()
