@@ -41,7 +41,6 @@ class Picarx(object):
         self.camera_servo_pin2 = Servo(PWM('P1'))
 
         # checking for a config file
-        print(piFlag)
         if piFlag:
             # if we are on a raspberrypi
             self.config_file = fileDB('/home/colin/.picar_config')
@@ -77,6 +76,8 @@ class Picarx(object):
         for pin in self.motor_speed_pins:
             pin.period(self.PERIOD)
             pin.prescaler(self.PRESCALER)
+
+        atexit.register(self.stop)
 
     def set_motor_speed(self, motor, speed):
         # global cali_speed_value,cali_dir_value
@@ -235,10 +236,6 @@ class Picarx(object):
         cm = round(during * 340 / 2 * 100, 2)
         #print(cm)
         return cm
-
-    @atexit.register
-    def zeroMotors(self):
-        self.stop()
 
 
 if __name__ == "__main__":
