@@ -76,6 +76,11 @@ class BasicManeuvering():
 		# kTurn(speed, initAng, dir)
 		return
 
+	def resetDriveServo(self):
+		# just resets the drive servo to 0
+		# no arguments
+		self.px.set_dir_servo_angle(0)
+
 if __name__ == '__main__':
 	# creating basic maneuvering object
 	bmObj = BasicManeuvering()
@@ -86,6 +91,7 @@ if __name__ == '__main__':
 	print('\t- backward(speed, angle, time)')
 	print('\t- parallelPark(speed, angle)')
 	print('\t- kTurn(speed, initAng, dir)')
+	print('\t- resetDriveServo()')
 	print('\t- exit <--- terminates the program')
 	print('\n\tUsage: function,arg1,arg2,arg3,...')
 	print('************************************************************************')
