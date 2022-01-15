@@ -124,10 +124,44 @@ class BasicManeuvering():
 		time.sleep(0.5)
 		self.px.stop()
 
-
 	def kTurn(self, args: list):
-		# kTurn(speed, initAng, dir)
-		return
+		# kTurn(speed, dir)
+		# checking arguments
+		numArgs = 2
+		if not self.checkArgs(args, numArgs):
+			raise UserWarning
+
+		# unpacking arg list
+		speed = float(args[1])
+		turnDir = args[2]
+
+		if turnDir == 'left':
+			turnCoeff = -1
+		else:
+			turnCoeff = 1
+
+		turnAng = 30
+
+		# turn 1
+		self.px.set_dir_servo_angle(turnAng * turnCoeff)
+		# move forward
+		self.px.forward(speed)
+		time.sleep(1)
+		self.px.stop()
+
+		# turn 2
+		self.px.set_dir_servo_angle(-turnAng * turnCoeff)
+		# move backward
+		self.px.backward(speed)
+		time.sleep(1)
+		self.px.stop()
+
+		# turn 1
+		self.px.set_dir_servo_angle(turnAng * turnCoeff)
+		# move forward
+		self.px.forward(speed)
+		time.sleep(2)
+		self.px.stop()
 
 	def reset(self, args: list):
 		# just resets the drive servo to 0
@@ -145,8 +179,8 @@ if __name__ == '__main__':
 	print('Please enter one of the commands below (comma separated):')
 	print('\t- forward(speed, angle, time)')
 	print('\t- backward(speed, angle, time)')
-	print('\t- parallelPark(speed, angle)')
-	print('\t- kTurn(speed, initAng, dir)')
+	print('\t- parallelPark(speed, dir)')
+	print('\t- kTurn(speed, dir)')
 	print('\t- reset <--- zeros all servos')
 	print('\t- * <--- issues the previous command')
 	print('\t- exit <--- terminates the program')
