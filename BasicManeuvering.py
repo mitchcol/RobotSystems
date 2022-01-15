@@ -19,6 +19,7 @@ class BasicManeuvering():
 		self.switch['parallelPark'] = self.parallelPark
 		self.switch['kTurn'] = self.kTurn
 		self.switch['reset'] = self.reset
+		self.switch['debugTest'] = self.test
 
 	# member methods
 	def checkArgs(self, args: list, numArgs):
@@ -109,7 +110,7 @@ class BasicManeuvering():
 		self.px.stop()
 
 		# angle wheels into street and back up
-		turnAng2 = 20
+		turnAng2 = 25
 		self.px.set_dir_servo_angle(turnAng2 * -turnCoeff)
 		# move backward
 		self.px.backward(speed)
@@ -133,6 +134,9 @@ class BasicManeuvering():
 		# no arguments required
 		self.px.set_dir_servo_angle(0)
 
+	def test(self, args: list):
+		print(args)
+
 if __name__ == '__main__':
 	# creating basic maneuvering object
 	bmObj = BasicManeuvering()
@@ -144,17 +148,25 @@ if __name__ == '__main__':
 	print('\t- parallelPark(speed, angle)')
 	print('\t- kTurn(speed, initAng, dir)')
 	print('\t- reset <--- zeros all servos')
+	print('\t- * <--- issues the previous command')
 	print('\t- exit <--- terminates the program')
 	print('\n\tUsage: function,arg1,arg2,arg3,...')
 	print('************************************************************************')
 
 	# starting endless loop so the user can keep entering commands
 	done = False
+	first = True
 	while not done:
 		# prompting the user to input a command
 		inputStr = input('@ ')
 
-		# separating the function from the arguments
+		if inputStr == '*':
+			if first:
+				print('\tNeed to enter a command before using *.')
+				continue
+			else:
+				inputStr = prevInputStr
+
 		inputList = inputStr.split(',')
 
 		if inputList[0] == 'exit':
@@ -163,6 +175,10 @@ if __name__ == '__main__':
 		else:
 			try:
 				bmObj.switch[inputList[0]](inputList)
+				prevInputStr = inputStr
+
+				if first:
+					first = False
 			except KeyError:
 				# function doesn't exist
 				print('\tCommand not found. Please verify with the list above.')
