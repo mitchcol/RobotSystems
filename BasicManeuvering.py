@@ -93,11 +93,10 @@ class BasicManeuvering():
 		time.sleep(2)
 		self.px.stop()
 
-		# angle wheels into curb
-		turnAng1 = 40
+		# angle wheels into curb and move backwards
+		turnAng1 = 50
 		self.px.set_dir_servo_angle(turnAng1 * turnCoeff)
-
-		# move backward with turned wheels
+		# move back
 		self.px.backward(speed)
 		time.sleep(1)
 		self.px.stop()
@@ -106,12 +105,19 @@ class BasicManeuvering():
 		self.px.set_dir_servo_angle(0)
 		# back up
 		self.px.backward(speed)
-		time.sleep(0.75)
+		time.sleep(1)
 		self.px.stop()
 
-		# angle wheels into street
+		# angle wheels into street and back up
+		turnAng2 = 50
+		self.px.set_dir_servo_angle(turnAng2 * -turnCoeff)
 		# move backward
+		self.px.backward(speed)
+		time.sleep(1)
+		self.px.stop()
+
 		# straighten wheels
+		self.px.set_dir_servo_angle(0)
 
 	def kTurn(self, args: list):
 		# kTurn(speed, initAng, dir)
