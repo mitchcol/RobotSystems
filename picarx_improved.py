@@ -77,6 +77,7 @@ class Picarx(object):
             pin.period(self.PERIOD)
             pin.prescaler(self.PRESCALER)
 
+        # 2.7.1 - making sure we stop motors on exit
         atexit.register(self.stop)
 
     def set_motor_speed(self, motor, speed):
@@ -87,8 +88,11 @@ class Picarx(object):
         elif speed < 0:
             direction = -1 * self.cali_dir_value[motor]
         speed = abs(speed)
-        if speed != 0:
-            speed = int(speed /2 ) + 50
+
+        # 2.7.2 - removing speed scaling to get true control
+        # if speed != 0:
+        #     speed = int(speed /2 ) + 50
+
         speed = speed - self.cali_speed_value[motor]
         if direction < 0:
             self.motor_direction_pins[motor].high()
@@ -236,7 +240,6 @@ class Picarx(object):
         cm = round(during * 340 / 2 * 100, 2)
         #print(cm)
         return cm
-
 
 if __name__ == "__main__":
     px = Picarx()
