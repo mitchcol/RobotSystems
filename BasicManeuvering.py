@@ -105,7 +105,7 @@ class BasicManeuvering():
 		self.px.set_dir_servo_angle(0)
 		# back up
 		self.px.backward(speed)
-		time.sleep(0.5)
+		time.sleep(1)
 		self.px.stop()
 
 		# angle wheels into street and back up
