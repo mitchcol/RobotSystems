@@ -36,9 +36,9 @@ class BasicManeuvering():
 		if not self.checkArgs(args, numArgs):
 			raise UserWarning
 
-		speed = args[1]
-		angle = args[2]
-		driveTime = args[3]
+		speed = float(args[1])
+		angle = float(args[2])
+		driveTime = float(args[3])
 
 		# setting angle
 		self.px.set_dir_servo_angle(angle)
@@ -56,9 +56,9 @@ class BasicManeuvering():
 		if not self.checkArgs(args, numArgs):
 			raise UserWarning
 
-		speed = args[1]
-		angle = args[2]
-		driveTime = args[3]
+		speed = float(args[1])
+		angle = float(args[2])
+		driveTime = float(args[3])
 
 		# setting angle
 		self.px.set_dir_servo_angle(angle)
