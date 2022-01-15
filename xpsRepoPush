@@ -1,5 +1,0 @@
-#!/bin/sh
-
-git add --all
-git commit -am "pushed with script. fine tuning code..."
-git push
