@@ -50,7 +50,7 @@ class Picarx(object):
             print('should have made it here.')
 
         # 2.7.4 - setting the proper default angle
-        self.dir_cal_value = int(self.config_file.get("picarx_dir_servo", default_value=10))
+        self.dir_cal_value = int(self.config_file.get("picarx_dir_servo", default_value=-8))
         self.cam_cal_value_1 = int(self.config_file.get("picarx_cam1_servo", default_value=0))
         self.cam_cal_value_2 = int(self.config_file.get("picarx_cam2_servo", default_value=0))
         self.dir_servo_pin.angle(self.dir_cal_value)
