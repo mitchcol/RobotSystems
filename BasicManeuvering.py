@@ -37,6 +37,7 @@ class BasicManeuvering():
 		if not self.checkArgs(args, numArgs):
 			raise UserWarning
 
+		# unpacking arg list
 		speed = float(args[1])
 		angle = float(args[2])
 		driveTime = float(args[3])
@@ -57,6 +58,7 @@ class BasicManeuvering():
 		if not self.checkArgs(args, numArgs):
 			raise UserWarning
 
+		# unpacking arg list
 		speed = float(args[1])
 		angle = float(args[2])
 		driveTime = float(args[3])
@@ -71,7 +73,38 @@ class BasicManeuvering():
 
 	def parallelPark(self, args: list):
 		# parallelPark(speed, dir)
-		return
+
+		# checking arguments
+		numArgs = 2
+		if not self.checkArgs(args, numArgs):
+			raise UserWarning
+
+		# unpacking arg list
+		speed = float(args[1])
+		parkDir = args[2]
+
+		if parkDir == 'left':
+			turnCoeff = -1
+		else:
+			turnCoeff = 1
+
+		# move forward
+		self.px.forward(speed)
+		time.sleep(3)
+		self.px.stop()
+
+		# angle wheels into curb
+		turnAng1 = 20
+		self.px.set_dir_servo_angle(turnAng1 * turnCoeff)
+
+		# move backward
+		self.px.forward(speed)
+		time.sleep(0.5)
+		self.px.stop()
+
+		# angle wheels into street
+		# move backward
+		# straighten wheels
 
 	def kTurn(self, args: list):
 		# kTurn(speed, initAng, dir)
@@ -79,7 +112,7 @@ class BasicManeuvering():
 
 	def reset(self, args: list):
 		# just resets the drive servo to 0
-		# no arguments
+		# no arguments required
 		self.px.set_dir_servo_angle(0)
 
 if __name__ == '__main__':
