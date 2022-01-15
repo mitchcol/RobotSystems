@@ -34,6 +34,7 @@ if __name__ == '__main__':
 	print('\t- parallelPark(speed, angle)')
 	print('\t- kTurn(speed, initAng, dir)')
 	print('\t- exit <--- terminates the program')
+	print('\n\tUsage: function,arg1,arg2,arg3,...')
 	print('************************************************************************')
 
 	# starting endless loop so the user can keep entering commands
