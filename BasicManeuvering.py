@@ -18,6 +18,7 @@ class BasicManeuvering():
 		self.switch['backward'] = self.backward
 		self.switch['parallelPark'] = self.parallelPark
 		self.switch['kTurn'] = self.kTurn
+		self.switch['reset'] = self.reset
 
 	# member methods
 	def checkArgs(self, args: list, numArgs):
