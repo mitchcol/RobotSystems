@@ -94,12 +94,12 @@ class BasicManeuvering():
 		self.px.stop()
 
 		# angle wheels into curb
-		turnAng1 = 20
+		turnAng1 = 30
 		self.px.set_dir_servo_angle(turnAng1 * turnCoeff)
 
 		# move backward
-		self.px.forward(speed)
-		time.sleep(0.5)
+		self.px.backward(speed)
+		time.sleep(1)
 		self.px.stop()
 
 		# angle wheels into street
