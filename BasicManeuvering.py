@@ -149,6 +149,12 @@ class BasicManeuvering():
 		time.sleep(1)
 		self.px.stop()
 
+		# move forward
+		self.px.set_dir_servo_angle(0)
+		self.px.forward(speed)
+		time.sleep(0.75)
+		self.px.stop()
+
 		# turn 2
 		self.px.set_dir_servo_angle(-turnAng * turnCoeff)
 		# move backward
@@ -160,8 +166,10 @@ class BasicManeuvering():
 		self.px.set_dir_servo_angle(turnAng * turnCoeff)
 		# move forward
 		self.px.forward(speed)
-		time.sleep(2)
+		time.sleep(1.8)
 		self.px.stop()
+
+		self.px.set_dir_servo_angle(0)
 
 	def reset(self, args: list):
 		# just resets the drive servo to 0
