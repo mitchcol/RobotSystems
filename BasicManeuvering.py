@@ -102,7 +102,9 @@ class BasicManeuvering():
 		time.sleep(1)
 		self.px.stop()
 
-		# back up stright
+		# reset dir servo angle and back up straight
+		self.px.set_dir_servo_angle(0)
+		# back up
 		self.px.backward(speed)
 		time.sleep(1)
 		self.px.stop()
