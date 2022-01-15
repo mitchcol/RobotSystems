@@ -77,7 +77,7 @@ class BasicManeuvering():
 		# kTurn(speed, initAng, dir)
 		return
 
-	def reset(self):
+	def reset(self, args: list):
 		# just resets the drive servo to 0
 		# no arguments
 		self.px.set_dir_servo_angle(0)
