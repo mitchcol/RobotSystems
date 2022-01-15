@@ -46,10 +46,11 @@ class Picarx(object):
             self.config_file = fileDB('/home/colin/.picar_config')
         else:
             # otherwise we are on xps-coamitch (ubuntu 20.04)
-            self.config_file = fileDB('/home/colin/Dropbox/OSU/ROB599/RobotSystemRepo')
+            self.config_file = fileDB('/home/colin/Dropbox/OSU/ROB599/RobotSystemRepo/.picar_config')
             print('should have made it here.')
 
-        self.dir_cal_value = int(self.config_file.get("picarx_dir_servo", default_value=0))
+        # 2.7.4 - setting the proper default angle
+        self.dir_cal_value = int(self.config_file.get("picarx_dir_servo", default_value=10))
         self.cam_cal_value_1 = int(self.config_file.get("picarx_cam1_servo", default_value=0))
         self.cam_cal_value_2 = int(self.config_file.get("picarx_cam2_servo", default_value=0))
         self.dir_servo_pin.angle(self.dir_cal_value)
@@ -180,7 +181,10 @@ class Picarx(object):
             # if abs_current_angle >= 0:
             if abs_current_angle > 40:
                 abs_current_angle = 40
+
+            # 2.7.3 - identify the function that defines the steering power relationship
             power_scale = (100 - abs_current_angle) / 100.0
+
             print("power_scale:",power_scale)
             if (current_angle / abs_current_angle) > 0:
                 self.set_motor_speed(1, -1*speed)
@@ -199,7 +203,10 @@ class Picarx(object):
             # if abs_current_angle >= 0:
             if abs_current_angle > 40:
                 abs_current_angle = 40
+
+            # 2.7.3 - identify the function that defines the steering power relationship
             power_scale = (100 - abs_current_angle) / 100.0
+
             print("power_scale:",power_scale)
             if (current_angle / abs_current_angle) > 0:
                 self.set_motor_speed(1, speed)
@@ -242,6 +249,7 @@ class Picarx(object):
         return cm
 
 if __name__ == "__main__":
+    # 2.7.4 - moving forward and checking steering
     px = Picarx()
     px.forward(50)
     time.sleep(1)
