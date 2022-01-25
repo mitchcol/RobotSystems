@@ -11,8 +11,8 @@ class Sensor():
 
 	# member methods
 	def readData(self):
-		adc_value_list = []
-		adc_value_list.append(self.chn_0.read())
-		adc_value_list.append(self.chn_1.read())
-		adc_value_list.append(self.chn_2.read())
-		return adc_value_list
+		adcValueList = []
+		adcValueList.append(self.chn_0.read())
+		adcValueList.append(self.chn_1.read())
+		adcValueList.append(self.chn_2.read())
+		return adcValueList
