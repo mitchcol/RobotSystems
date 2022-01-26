@@ -88,7 +88,7 @@ class Interpretation():
 
 if __name__ == "__main__":
 	sensorObj = Sensor.Sensor()
-	interObj = Interpretation(sensitivity=1, polarity=Polarity.LIGHT)
+	interObj = Interpretation(sensitivity=1, polarity=Polarity.DARK)
 
 	while True:
 		adcValues =  sensorObj.readData()
