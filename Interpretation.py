@@ -1,3 +1,4 @@
+import time
 from enum import Enum
 import Sensor
 
@@ -95,4 +96,6 @@ if __name__ == "__main__":
 
 		position = interObj.getPosition(adcValues)
 		print(f'position: {position}\n')
+
+		time.sleep(1)
 
