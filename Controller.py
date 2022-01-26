@@ -1,8 +1,9 @@
-import picarx_improved
+import time
+
 import picarx_improved as pci
-import Sensor
-from Interpretation import *
-from picarx_improved import *
+from Interpretation import Interpretation
+from Interpretation import Polarity
+from Sensor import Sensor
 
 class Controller():
 	# constructor
@@ -22,9 +23,9 @@ class Controller():
 		return steeringAngle
 
 if __name__ == '__main__':
-	px = picarx_improved.Picarx()
+	px = pci.Picarx()
 
-	sensorObj = Sensor.Sensor()
+	sensorObj = Sensor()
 	interObj = Interpretation(sensitivity=1, polarity=Polarity.DARK)
 	contObj = Controller()
 
