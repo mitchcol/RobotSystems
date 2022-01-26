@@ -23,6 +23,7 @@ class BasicManeuvering():
 		self.switch['backward'] = self.backward
 		self.switch['parallelPark'] = self.parallelPark
 		self.switch['kTurn'] = self.kTurn
+		self.switch['lineFollower'] = self.lineFollower
 		self.switch['reset'] = self.reset
 		self.switch['debugTest'] = self.test
 
