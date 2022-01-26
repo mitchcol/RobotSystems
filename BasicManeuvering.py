@@ -181,14 +181,14 @@ class BasicManeuvering():
 		# lineFollower(speed, scale, time)
 
 		# checking arguments
-		numArgs = 2
+		numArgs = 3
 		if not self.checkArgs(args, numArgs):
 			raise UserWarning
 
 		# unpacking argument list
-		speed = int(args[0])
-		scale = float(args[1])
-		runtime = int(args[2])
+		speed = int(args[1])
+		scale = float(args[2])
+		runtime = int(args[3])
 
 		# creating sensor, interpretation, and controller objects
 		sensorObj = Sensor()
