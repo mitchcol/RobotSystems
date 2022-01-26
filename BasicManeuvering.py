@@ -1,5 +1,10 @@
-import picarx_improved as pi
 import time
+
+import picarx_improved as pci
+from Controller import Controller
+from Interpretation import Interpretation
+from Interpretation import Polarity
+from Sensor import Sensor
 
 # note! all these functions take a list as their argument. any argument checking is done
 # inside the function body. Remember, the first element in the list is the function name.
@@ -10,7 +15,7 @@ class BasicManeuvering():
 	# constructor
 	def __init__(self):
 		# creating picar object
-		self.px = pi.Picarx()
+		self.px = pci.Picarx()
 
 		# loading dictionary with callable functions. acts like a switch
 		self.switch = dict()
@@ -171,6 +176,28 @@ class BasicManeuvering():
 
 		self.px.set_dir_servo_angle(0)
 
+	def lineFollower(self, args: list):
+		# lineFollower(speed, scale, time)
+		# creating sensor, interpretation, and controller objects
+		sensorObj = Sensor()
+		interObj = Interpretation(sensitivity=1, polarity=Polarity.DARK)
+		contObj = Controller(scale=args[1])
+
+		# setting up the loop from the input argument
+		runtime = args[2]
+		timeout = time.time() + runtime
+
+		while True:
+			self.px.forward(args[0])
+			adcValues = sensorObj.readData()
+			position = interObj.getPosition(adcValues)
+			contObj.control(self.px, position)
+
+			if time.time() > timeout:
+				break
+
+		self.px.stop()
+
 	def reset(self, args: list):
 		# just resets the drive servo to 0
 		# no arguments required
@@ -189,6 +216,7 @@ if __name__ == '__main__':
 	print('\t- backward(speed, angle, time)')
 	print('\t- parallelPark(speed, dir)')
 	print('\t- kTurn(speed, dir)')
+	print('\t- lineFollower(speed, scale, time)')
 	print('\t- reset <--- zeros all servos')
 	print('\t- * <--- issues the previous command')
 	print('\t- exit <--- terminates the program')
