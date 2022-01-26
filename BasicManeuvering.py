@@ -179,17 +179,27 @@ class BasicManeuvering():
 
 	def lineFollower(self, args: list):
 		# lineFollower(speed, scale, time)
+
+		# checking arguments
+		numArgs = 2
+		if not self.checkArgs(args, numArgs):
+			raise UserWarning
+
+		# unpacking argument list
+		speed = int(args[0])
+		scale = float(args[1])
+		runtime = int(args[2])
+
 		# creating sensor, interpretation, and controller objects
 		sensorObj = Sensor()
-		interObj = Interpretation(sensitivity=1, polarity=Polarity.DARK)
-		contObj = Controller(scale=float(args[1]))
+		interObj = Interpretation(sensitivity=1)
+		contObj = Controller(scale=scale)
 
 		# setting up the loop from the input argument
-		runtime = float(args[2])
 		timeout = time.time() + runtime
 
 		while True:
-			self.px.forward(float(args[0]))
+			self.px.forward(speed)
 			adcValues = sensorObj.readData()
 			position = interObj.getPosition(adcValues)
 			contObj.control(self.px, position)
