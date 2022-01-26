@@ -1,4 +1,5 @@
 import time
+import sys
 
 import picarx_improved as pci
 from Controller import Controller
@@ -14,8 +15,21 @@ sensorObj = Sensor()
 interObj = Interpretation(sensitivity=1, polarity=Polarity.DARK)
 contObj = Controller()
 
+# setting up the loop from the input argument
+if len(sys.argv) >= 2:
+	runtime = sys.argv[1]
+else:
+	runtime = 10
+
+timeout = time.time() + runtime
+
 while True:
 	px.forward(30)
 	adcValues = sensorObj.readData()
 	position = interObj.getPosition(adcValues)
 	steeringAngle = contObj.control(px, position)
+
+	if time.time() > timeout:
+		break
+
+px.stop()
