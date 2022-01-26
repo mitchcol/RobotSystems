@@ -17,7 +17,7 @@ contObj = Controller()
 
 # setting up the loop from the input argument
 if len(sys.argv) >= 2:
-	runtime = sys.argv[1]
+	runtime = float(sys.argv[1])
 else:
 	runtime = 10
 
