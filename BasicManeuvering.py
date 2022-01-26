@@ -182,14 +182,14 @@ class BasicManeuvering():
 		# creating sensor, interpretation, and controller objects
 		sensorObj = Sensor()
 		interObj = Interpretation(sensitivity=1, polarity=Polarity.DARK)
-		contObj = Controller(scale=args[1])
+		contObj = Controller(scale=float(args[1]))
 
 		# setting up the loop from the input argument
-		runtime = args[2]
+		runtime = float(args[2])
 		timeout = time.time() + runtime
 
 		while True:
-			self.px.forward(args[0])
+			self.px.forward(float(args[0]))
 			adcValues = sensorObj.readData()
 			position = interObj.getPosition(adcValues)
 			contObj.control(self.px, position)
