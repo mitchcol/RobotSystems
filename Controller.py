@@ -6,7 +6,7 @@ from picarx_improved import *
 
 class Controller():
 	# constructor
-	def __init__(self, scale=30):
+	def __init__(self, scale=20):
 		self._scale = scale
 
 	# getters/setters
