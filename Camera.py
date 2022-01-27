@@ -10,7 +10,7 @@ import math
 
 class Camera():
 	# constructor
-	def __init__(self, resolution=(640, 480), framerate=24):
+	def __init__(self, resolution=(800, 600), framerate=24):
 		self._camera = PiCamera()
 		self._camera.resolution = resolution
 		self._camera.framerate = framerate
