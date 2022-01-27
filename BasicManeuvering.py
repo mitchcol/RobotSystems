@@ -242,6 +242,7 @@ class BasicManeuvering():
 			key = cv2.waitKey(1) & 0xFF
 			if key == 27:
 				camera.camera.close()
+				self.px.stop()
 				break
 
 	def reset(self, args: list):
