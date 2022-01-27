@@ -237,7 +237,7 @@ class BasicManeuvering():
 			hardingImg = camera.displayHeadingLine(frameArry, steeringAngle)
 			cv2.imshow('heading', hardingImg)
 
-			self.px.set_dir_servo_angle(steeringAngle)
+			self.px.set_dir_servo_angle(-steeringAngle)
 
 			camera.rawCapture.truncate(0)
 
