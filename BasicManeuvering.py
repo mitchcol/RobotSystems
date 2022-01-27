@@ -1,10 +1,12 @@
 import time
+import cv2
 
 import picarx_improved as pci
 from Controller import Controller
 from Interpretation import Interpretation
 from Interpretation import Polarity
 from Sensor import Sensor
+from Camera	import Camera
 
 # note! all these functions take a list as their argument. any argument checking is done
 # inside the function body. Remember, the first element in the list is the function name.
@@ -24,6 +26,7 @@ class BasicManeuvering():
 		self.switch['parallelPark'] = self.parallelPark
 		self.switch['kTurn'] = self.kTurn
 		self.switch['lineFollower'] = self.lineFollower
+		self.switch['cameraFollower'] = self.cameraFollower
 		self.switch['reset'] = self.reset
 		self.switch['debugTest'] = self.test
 
@@ -209,6 +212,36 @@ class BasicManeuvering():
 
 		self.px.stop()
 
+	def cameraFollower(self, args: list):
+		# lineFollower(speed)
+
+		# checking arguments
+		numArgs = 1
+		if not self.checkArgs(args, numArgs):
+			raise UserWarning
+
+		# unpacking argument list
+		speed = int(args[1])
+
+		camera = Camera()
+		for frame in camera.camera.capture_continuous(camera.rawCapture, format='bgr', use_video_port=True):
+			self.px.forward(speed)
+
+			laneLines = camera.detectLane(frame)
+			linesImg = camera.displayLaneLines(frame, laneLines)
+			cv2.imshow('lines', linesImg)
+
+			steeringAngle = camera.getSteeringAngle(frame, laneLines)
+			hardingImg = camera.displayHeadingLine(frame, steeringAngle)
+			cv2.imshow('heading', hardingImg)
+
+			self.px.set_dir_servo_angle(steeringAngle)
+
+			key = cv2.waitKey(1) & 0xFF
+			if key == 27:
+				camera.camera.close()
+				break
+
 	def reset(self, args: list):
 		# just resets the drive servo to 0
 		# no arguments required
@@ -228,6 +261,7 @@ if __name__ == '__main__':
 	print('\t- parallelPark(speed, dir)')
 	print('\t- kTurn(speed, dir)')
 	print('\t- lineFollower(speed, scale, time)')
+	print('\t- cameraFollower(speed)')
 	print('\t- reset <--- zeros all servos')
 	print('\t- * <--- issues the previous command')
 	print('\t- exit <--- terminates the program')
