@@ -227,12 +227,14 @@ class BasicManeuvering():
 		for frame in camera.camera.capture_continuous(camera.rawCapture, format='bgr', use_video_port=True):
 			self.px.forward(speed)
 
-			laneLines = camera.detectLane(frame.array)
-			linesImg = camera.displayLaneLines(frame, laneLines)
+			frameArry = frame.array
+
+			laneLines = camera.detectLane(frameArry)
+			linesImg = camera.displayLaneLines(frameArry, laneLines)
 			cv2.imshow('lines', linesImg)
 
-			steeringAngle = camera.getSteeringAngle(frame, laneLines)
-			hardingImg = camera.displayHeadingLine(frame, steeringAngle)
+			steeringAngle = camera.getSteeringAngle(frameArry, laneLines)
+			hardingImg = camera.displayHeadingLine(frameArry, steeringAngle)
 			cv2.imshow('heading', hardingImg)
 
 			self.px.set_dir_servo_angle(steeringAngle)
