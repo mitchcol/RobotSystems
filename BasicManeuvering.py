@@ -224,7 +224,7 @@ class BasicManeuvering():
 		speed = int(args[1])
 
 		# setting tilt servo down
-		self.px.set_camera_servo2_angle(-10)
+		self.px.set_camera_servo2_angle(-25)
 
 		camera = Camera()
 		for frame in camera.camera.capture_continuous(camera.rawCapture, format='bgr', use_video_port=True):
@@ -234,10 +234,9 @@ class BasicManeuvering():
 
 			laneLines = camera.detectLane(frameArry)
 			linesImg = camera.displayLaneLines(frameArry, laneLines)
-			cv2.imshow('lines', linesImg)
 
 			steeringAngle = camera.getSteeringAngle(frameArry, laneLines)
-			hardingImg = camera.displayHeadingLine(frameArry, steeringAngle)
+			hardingImg = camera.displayHeadingLine(linesImg, steeringAngle)
 			cv2.imshow('heading', hardingImg)
 
 			self.px.set_dir_servo_angle(-steeringAngle)
