@@ -224,7 +224,7 @@ class BasicManeuvering():
 		speed = int(args[1])
 
 		# setting tilt servo down
-		self.px.set_camera_servo1_angle(-25)
+		self.px.set_camera_servo1_angle(-15)
 
 		camera = Camera()
 		for frame in camera.camera.capture_continuous(camera.rawCapture, format='bgr', use_video_port=True):
