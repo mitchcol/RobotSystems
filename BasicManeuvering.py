@@ -239,6 +239,8 @@ class BasicManeuvering():
 
 			self.px.set_dir_servo_angle(steeringAngle)
 
+			camera.rawCapture.truncate(0)
+
 			key = cv2.waitKey(1) & 0xFF
 			if key == 27:
 				camera.camera.close()
