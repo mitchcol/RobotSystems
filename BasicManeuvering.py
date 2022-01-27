@@ -227,7 +227,7 @@ class BasicManeuvering():
 		for frame in camera.camera.capture_continuous(camera.rawCapture, format='bgr', use_video_port=True):
 			self.px.forward(speed)
 
-			laneLines = camera.detectLane(frame)
+			laneLines = camera.detectLane(frame.array)
 			linesImg = camera.displayLaneLines(frame, laneLines)
 			cv2.imshow('lines', linesImg)
 
