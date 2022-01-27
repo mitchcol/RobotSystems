@@ -33,7 +33,7 @@ class Camera():
 		upperBlue = np.array([150, 255, 255])
 
 		# converting frame to hvs
-		hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+		hsv = cv2.cvtColor(frame.array, cv2.COLOR_BGR2HSV)
 
 		return cv2.inRange(hsv, lowerBlue, upperBlue)
 
