@@ -168,7 +168,7 @@ class Camera():
 				for x1, y1, x2, y2 in line:
 					cv2.line(lineImage, (x1, y1), (x2, y2), lineColor, lineWidth)
 
-		lineImage = cv2.addWeighted(frame.array, 0.8, lineImage, 1, 1)
+		lineImage = cv2.addWeighted(frame, 0.8, lineImage, 1, 1)
 		return lineImage
 
 	def displayHeadingLine(self, frame, steeringAngle, lineColor=(0, 0, 255), lineWidth=5):
