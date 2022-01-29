@@ -253,6 +253,7 @@ class BasicManeuvering():
 		# just resets the drive servo to 0
 		# no arguments required
 		self.px.set_dir_servo_angle(0)
+		self.px.set_camera_servo1_angle(0)
 
 	def test(self, args: list):
 		print(args)

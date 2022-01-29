@@ -158,6 +158,9 @@ class Camera():
 		midDegAngle = int(midRadianAngle * 180.0 / math.pi)  # angle (in degrees) to center vertical line
 		steeringAngle = midDegAngle + 90  # this is the steering angle needed by picar front wheel
 
+		# normalizing the steering angle that is calculated to +- 30 degrees
+		
+
 		return steeringAngle
 
 	def displayLaneLines(self, frame, lines, lineColor=(0, 255, 0), lineWidth=2):
