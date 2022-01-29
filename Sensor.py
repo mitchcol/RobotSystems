@@ -1,4 +1,7 @@
+import time
+
 from adc import ADC
+from Bus import  Bus
 
 class Sensor():
 	# constructor
@@ -16,3 +19,11 @@ class Sensor():
 		adcValueList.append(self.chn_1.read())
 		adcValueList.append(self.chn_2.read())
 		return adcValueList
+
+	def senseThread(self, senseBus: Bus, delay):
+		while(True):
+			# reading the sensor and storing via the bus
+			senseBus.message(self.readData())
+
+			# sleeping the specified time
+			time.sleep(delay)

@@ -196,7 +196,7 @@ class BasicManeuvering():
 		# creating sensor, interpretation, and controller objects
 		sensorObj = Sensor()
 		interObj = Interpretation(sensitivity=1)
-		contObj = Controller(scale=scale)
+		contObj = Controller(self.px, scale=scale)
 
 		# setting up the loop from the input argument
 		timeout = time.time() + runtime
@@ -205,7 +205,7 @@ class BasicManeuvering():
 			self.px.forward(speed)
 			adcValues = sensorObj.readData()
 			position = interObj.getPosition(adcValues)
-			contObj.control(self.px, position)
+			contObj.control(position)
 
 			if time.time() > timeout:
 				break

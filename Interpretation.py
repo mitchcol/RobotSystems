@@ -86,6 +86,16 @@ class Interpretation():
 		# normalizes the input value according to the provided min and max args
 		return (value - min) / (max - min)
 
+	def interpretThread(self, senseBus, interpretBus, delay):
+		while (True):
+			# get data from senseBus
+			adcValues = senseBus.message
+			# store data in interpret bus message
+			interpretBus.message(self.getPosition(adcValues))
+
+			time.sleep(delay)
+
+
 if __name__ == "__main__":
 	sensorObj = Sensor.Sensor()
 	interObj = Interpretation(sensitivity=1, polarity=Polarity.DARK)

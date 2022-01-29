@@ -4,11 +4,13 @@ import picarx_improved as pci
 from Interpretation import Interpretation
 from Interpretation import Polarity
 from Sensor import Sensor
+from Bus import Bus
 
 class Controller():
 	# constructor
-	def __init__(self, scale=20):
+	def __init__(self, px: pci.Picarx, scale=20):
 		self._scale = scale
+		self._px = px
 
 	# getters/setters
 	@property
@@ -16,11 +18,21 @@ class Controller():
 		return self._scale
 
 	# member methods
-	def control(self, px: pci.Picarx, position: float):
+	def control(self, position: float):
 		# method to set the steering servo based on the input offset
 		steeringAngle = self._scale * position
-		px.set_dir_servo_angle(steeringAngle)
+		self._px.set_dir_servo_angle(steeringAngle)
 		return steeringAngle
+
+	def controlThread(self, interpretBus: Bus, controlBus: Bus, delay):
+		while(True):
+			# read from interpretBus
+			position = interpretBus.message
+			
+			# write steering angle to controlBus
+			controlBus.message(self.control(position))
+
+			time.sleep(delay)
 
 if __name__ == '__main__':
 	px = pci.Picarx()
