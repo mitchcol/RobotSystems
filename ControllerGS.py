@@ -1,9 +1,9 @@
 import time
 
 import picarx_improved as pci
-from Interpretation import Interpretation
-from Interpretation import Polarity
-from Sensor import Sensor
+from InterpretationGS import Interpretation
+from InterpretationGS import Polarity
+from SensorGS import Sensor
 from Bus import Bus
 
 class Controller():
@@ -28,7 +28,7 @@ class Controller():
 		while(True):
 			# read from interpretBus
 			position = interpretBus.message
-			
+
 			# write steering angle to controlBus
 			controlBus.message(self.control(position))
 

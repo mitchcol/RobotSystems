@@ -2,10 +2,10 @@ import time
 import cv2
 
 import picarx_improved as pci
-from Controller import Controller
-from Interpretation import Interpretation
-from Interpretation import Polarity
-from Sensor import Sensor
+from ControllerGS import Controller
+from InterpretationGS import Interpretation
+from InterpretationGS import Polarity
+from SensorGS import Sensor
 from Camera	import Camera
 
 # note! all these functions take a list as their argument. any argument checking is done

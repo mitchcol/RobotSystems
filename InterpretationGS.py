@@ -1,6 +1,6 @@
 import time
 from enum import Enum
-import Sensor
+import SensorGS
 
 class Polarity(Enum):
 	DARK = 0
@@ -97,7 +97,7 @@ class Interpretation():
 
 
 if __name__ == "__main__":
-	sensorObj = Sensor.Sensor()
+	sensorObj = SensorGS.Sensor()
 	interObj = Interpretation(sensitivity=1, polarity=Polarity.DARK)
 
 	while True:

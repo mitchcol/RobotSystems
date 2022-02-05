@@ -1,9 +1,9 @@
 import concurrent.futures
 
 import picarx_improved as pci
-from Sensor import Sensor
-from Interpretation import Interpretation
-from Controller import Controller
+from SensorGS import Sensor
+from InterpretationGS import Interpretation
+from ControllerGS import Controller
 from Bus import Bus
 
 if __name__ == "__main__":
@@ -27,4 +27,4 @@ if __name__ == "__main__":
 		eSensor.result()
 		eInterpreter.result()
 		eController.result()
-		
+

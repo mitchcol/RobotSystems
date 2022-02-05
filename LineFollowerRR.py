@@ -2,9 +2,9 @@ import concurrent.futures
 
 import picarx_improved as pci
 import rossros
-from Sensor import Sensor
-from Interpretation import Interpretation
-from Controller import Controller
+from SensorGS import Sensor
+from InterpretationGS import Interpretation
+from ControllerGS import Controller
 
 if __name__ == "__main__":
 	# instantiating car object

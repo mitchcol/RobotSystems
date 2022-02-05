@@ -2,10 +2,10 @@ import time
 import sys
 
 import picarx_improved as pci
-from Controller import Controller
-from Interpretation import Interpretation
-from Interpretation import Polarity
-from Sensor import Sensor
+from ControllerGS import Controller
+from InterpretationGS import Interpretation
+from InterpretationGS import Polarity
+from SensorGS import Sensor
 
 # creating car object
 px = pci.Picarx()
