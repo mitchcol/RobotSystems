@@ -1,23 +1,20 @@
 import time
-
-from adc import ADC
+from pin import Pin
+from ultrasonic import Ultrasonic
 
 class Sensor():
 	# constructor
 	def __init__(self):
-		self.chn_6 = ADC("A6")
-		self.chn_7 = ADC("A7")
+		# setting up ultrasonic readings
+		self._trigPin = Pin("D2")
+		self._echoPin = Pin("D3")
+		self._sonar = Ultrasonic(self._trigPin, self._echoPin)
 
 	# getters/setters
 
 	# member methods
 	def readData(self):
-		adcValueList = []
-		adcValueList.append(self.chn_6.read())
-		adcValueList.append(self.chn_7.read())
-
-		return adcValueList
-
+		return self._sonar.read()
 
 if __name__ == '__main__':
 	# creating sensor object
