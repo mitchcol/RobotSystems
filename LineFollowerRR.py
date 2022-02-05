@@ -25,12 +25,19 @@ if __name__ == "__main__":
 	# creating rossros nodes
 	delay = 0.5
 	timer = rossros.Timer(timerBus, delay=delay, termination_busses=termBus, name='timerP')
-	eSensor = rossros.Producer(sense.readData, senseBus, delay=delay, termination_busses=termBus, name='sensorP')
-	eInterpreter = rossros.ConsumerProducer(interpreter.getPosition, senseBus, interpBus, delay=delay,
-											termination_busses=termBus, name='interpCP')
-	eController = rossros.Consumer(control.control, interpBus, delay=delay, termination_busses=termBus, name='controlC')
 
-	# calling all objects to start
-	eSensor()
-	eInterpreter()
-	eController()
+	# creating grayscale control objects
+	gsSensorObj = rossros.Producer(sense.readData, senseBus, delay=delay, termination_busses=termBus, name='sensorP')
+	gsInterpreterObj = rossros.ConsumerProducer(interpreter.getPosition, senseBus, interpBus, delay=delay,
+											termination_busses=termBus, name='interpCP')
+	gsControlObj = rossros.Consumer(control.control, interpBus, delay=delay, termination_busses=termBus, name='controlC')
+
+	while (True):
+		with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor:
+			gsSensorThread = executor.submit(gsSensorObj)
+			gsInterpThread = executor.submit(gsInterpreterObj)
+			gsControlThread = executor.submit(gsControlObj)
+
+		gsSensorThread.result()
+		gsInterpThread.result()
+		gsControlThread.result()
