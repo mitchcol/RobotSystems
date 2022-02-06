@@ -29,7 +29,7 @@ class Interpretation():
 	# member methods
 	def checkStop(self, distance: float):
 		# using the sonar distance to determine if we need to stop or not
-		if distance >= self._stopDist.value:
+		if (distance >= self._stopDist.value) or (distance < 0):
 			return SonarMove.STOP
 
 		return SonarMove.GO
