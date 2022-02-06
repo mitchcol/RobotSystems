@@ -1,6 +1,6 @@
 import time
-from pin import Pin
 from ultrasonic import Ultrasonic
+from pin import Pin
 
 class Sensor():
 	# constructor
@@ -20,9 +20,8 @@ if __name__ == '__main__':
 	# creating sensor object
 	sonar = Sensor()
 
+	# printing sensor readings to the console
 	while True:
-		adcValueList = sonar.readData()
-
-		print(adcValueList)
-
+		distance = sonar.readData()
+		print(distance)
 		time.sleep(0.5)
