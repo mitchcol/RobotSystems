@@ -1,0 +1,425 @@
+#!/usr/bin/python3
+# coding=utf8
+# Date:2021/05/04
+# Author:Aiden
+import sys
+import cv2
+import math
+import rospy
+import numpy as np
+from threading import RLock, Timer
+
+from std_srvs.srv import *
+from sensor_msgs.msg import Image
+
+from sensor.msg import Led
+from object_tracking.srv import *
+from hiwonder_servo_msgs.msg import MultiRawIdPosDur
+
+from kinematics import ik_transform
+
+from armpi_fpv import PID
+from armpi_fpv import Misc
+from armpi_fpv import bus_servo_control
+
+# 颜色跟踪
+
+ik = ik_transform.ArmIK()
+
+lock = RLock()
+
+size = (320, 240)
+start_move = True
+__target_color = ''
+__isRunning = False
+org_image_sub_ed = False
+
+x_dis = 500
+y_dis = 0.167
+Z_DIS = 0.2
+z_dis = Z_DIS
+x_pid = PID.PID(P=0.06, I=0.005, D=0)  # pid初始化
+y_pid = PID.PID(P=0.00001, I=0, D=0)
+z_pid = PID.PID(P=0.00003, I=0, D=0)
+
+range_rgb = {
+    'red': (0, 0, 255),
+    'blue': (255, 0, 0),
+    'green': (0, 255, 0),
+    'black': (0, 0, 0),
+    'white': (255, 255, 255),
+}
+
+# 找出面积最大的轮廓
+# 参数为要比较的轮廓的列表
+def getAreaMaxContour(contours):
+    contour_area_temp = 0
+    contour_area_max = 0
+    area_max_contour = None
+
+    for c in contours:  # 历遍所有轮廓
+        contour_area_temp = math.fabs(cv2.contourArea(c))  # 计算轮廓面积
+        if contour_area_temp > contour_area_max:
+            contour_area_max = contour_area_temp
+            if contour_area_temp > 10:  # 只有在面积大于300时，最大面积的轮廓才是有效的，以过滤干扰
+                area_max_contour = c
+
+    return area_max_contour, contour_area_max  # 返回最大的轮廓
+
+# 初始位置
+def initMove(delay=True):
+    with lock:
+        target = ik.setPitchRanges((0, y_dis, Z_DIS), -90, -92, -88)
+        if target:
+            servo_data = target[1]
+            bus_servo_control.set_servos(joints_pub, 1500, ((1, 200), (2, 500), (3, servo_data['servo3']), (4, servo_data['servo4']), (5, servo_data['servo5']),(6, servo_data['servo6'])))
+    if delay:
+        rospy.sleep(2)
+
+def turn_off_rgb():
+    led = Led()
+    led.index = 0
+    led.rgb.r = 0
+    led.rgb.g = 0
+    led.rgb.b = 0
+    rgb_pub.publish(led)
+    led.index = 1
+    rgb_pub.publish(led)
+
+# 变量重置
+def reset():
+    global x_dis, y_dis, z_dis
+    global __target_color
+    
+    with lock:
+        x_dis = 500
+        y_dis = 0.167
+        z_dis = Z_DIS
+        x_pid.clear()
+        y_pid.clear()
+        z_pid.clear()
+        turn_off_rgb()
+        __target_color = ''
+
+color_range = None
+# app初始化调用
+def init():
+    global color_range 
+    
+    rospy.loginfo("object tracking Init")
+    color_range = rospy.get_param('/lab_config_manager/color_range_list', {})  # get lab range from ros param server
+    initMove()
+    reset()
+
+def run(img):
+    global start_move
+    global x_dis, y_dis, z_dis
+
+    # making a copy of the image and getting the height and width
+    imgObj = ImgPerception(img)
+
+    # drawing a plus in the middle of the screen with thickness 2 that is cyan
+    imgObj.drawPlus()
+
+    # resizing the image and getting the color conversion code
+    imgObj.alterFrameAttributes()
+
+    # looping through all the color ranges in the color range list (this comes from the
+    # '/lab_config_manager/color_range_list' ros param server
+    if __target_color in color_range:
+        # getting the current target color
+        target_color_range = color_range[__target_color]
+
+        # creating a mask for the image. inrange just looks for the colors in the
+        frameMask = imgObj.getFrameMask(target_color_range)
+
+        # eroding away things in the foreground? basically reduces the details of the image. removes the white
+        # noise of the image
+        erodedFrame = imgObj.erode(frameMask)
+
+        # used to accentuate features and increases object area
+        dilatedFrame = imgObj.dilate(erodedFrame)
+
+        # finding the contours of the image (contour = lines that connect the points of the image together).
+        # contours help in shape analysis/object detection
+        contours = imgObj.getContours(dilatedFrame)
+
+        # getting the max area and the max contour area of the resulting image
+        imgObj.updateAreaMaxContour(contours)
+
+    # checking the max area of the image.
+    if imgObj.maxArea > 100:  # 有找到最大面积
+        # if its greater than 100 pixels, then we find the minimum circle size to surround the contour identified
+        imgObj.getCircleParams()
+
+        # if the radius is bigger than 100 pixels then we return the original image
+        if imgObj.radius > 100:
+            return img
+
+        # otherwise, we draw a circle
+        imgObj.drawCircle(__target_color)
+
+        # start_move appears to be a global variable that is initialized to True
+        # if the image starts moving (and therefore the circle) we have to move the servos to keep the image in view
+        if start_move:
+            # setting the x starting point and finding where to go based on the center of the circle. X POS
+            x_pid.SetPoint = imgObj.imgW / 2.0  # 设定
+            x_pid.update(imgObj.centerX)  # 当前
+            dx = x_pid.output
+            x_dis += int(dx)  # 输出
+            x_dis = 200 if x_dis < 200 else x_dis
+            x_dis = 800 if x_dis > 800 else x_dis
+
+            # setting the y starting point and figuring out the y pos
+            y_pid.SetPoint = 900  # 设定
+            if abs(imgObj.maxArea - 900) < 50:
+                imgObj.maxArea = 900
+            y_pid.update(imgObj.maxArea)  # 当前
+            dy = y_pid.output
+            y_dis += dy  # 输出
+            y_dis = 0.12 if y_dis < 0.12 else y_dis
+            y_dis = 0.25 if y_dis > 0.25 else y_dis
+
+            # setting the z starting point and figuring out the z pos
+            z_pid.SetPoint = imgObj.imgH / 2.0
+            z_pid.update(imgObj.centerY)
+            dy = z_pid.output
+            z_dis += dy
+            z_dis = 0.22 if z_dis > 0.22 else z_dis
+            z_dis = 0.17 if z_dis < 0.17 else z_dis
+
+            
+            target = ik.setPitchRanges((0, round(y_dis, 4), round(z_dis, 4)), -90, -85, -95)
+            if target:
+                servo_data = target[1]
+                bus_servo_control.set_servos(joints_pub, 20, (
+                    (3, servo_data['servo3']), (4, servo_data['servo4']), (5, servo_data['servo5']), (6, x_dis)))
+    return img
+
+def image_callback(ros_image):
+    global lock
+    
+    image = np.ndarray(shape=(ros_image.height, ros_image.width, 3), dtype=np.uint8,
+                       buffer=ros_image.data)  # 将自定义图像消息转化为图像
+    cv2_img = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
+    
+    frame = cv2_img.copy()
+    frame_result = frame
+    with lock:
+        if __isRunning:
+            frame_result = run(frame)
+    rgb_image = cv2.cvtColor(frame_result, cv2.COLOR_BGR2RGB).tostring()
+    ros_image.data = rgb_image
+    
+    image_pub.publish(ros_image)
+
+def enter_func(msg):
+    global lock
+    global image_sub
+    global __isRunning
+    global org_image_sub_ed
+    
+    rospy.loginfo("enter object tracking")
+    init()
+    with lock:
+        if not org_image_sub_ed:
+            org_image_sub_ed = True
+            image_sub = rospy.Subscriber('/usb_cam/image_raw', Image, image_callback)
+            
+    return [True, 'enter']
+
+heartbeat_timer = None
+def exit_func(msg):
+    global lock
+    global image_sub
+    global __isRunning
+    global org_image_sub_ed
+    
+    rospy.loginfo("exit object tracking")
+    with lock:
+        __isRunning = False
+        reset()
+        try:
+            if org_image_sub_ed:
+                org_image_sub_ed = False
+                heartbeat_timer.cancel()
+                image_sub.unregister()
+        except BaseException as e:
+            rospy.loginfo('%s', e)
+        
+    return [True, 'exit']
+
+def start_running():
+    global lock
+    global __isRunning
+    
+    rospy.loginfo("start running object tracking")
+    with lock:
+        __isRunning = True
+
+def stop_running():
+    global lock
+    global __isRunning
+    
+    rospy.loginfo("stop running object tracking")
+    with lock:
+        __isRunning = False
+        reset()
+        initMove(delay=False)
+
+def set_running(msg):
+    if msg.data:
+        start_running()
+    else:
+        stop_running()
+        
+    return [True, 'set_running']
+
+def set_target(msg):
+    global lock
+    global __target_color
+    
+    rospy.loginfo("%s", msg)
+    with lock:
+        __target_color = msg.data
+        led = Led()
+        led.index = 0
+        led.rgb.r = range_rgb[__target_color][2]
+        led.rgb.g = range_rgb[__target_color][1]
+        led.rgb.b = range_rgb[__target_color][0]
+        rgb_pub.publish(led)
+        led.index = 1
+        rgb_pub.publish(led)
+        rospy.sleep(0.1)
+        
+    return [True, 'set_target']
+
+def heartbeat_srv_cb(msg):
+    global heartbeat_timer
+
+    if isinstance(heartbeat_timer, Timer):
+        heartbeat_timer.cancel()
+    if msg.data:
+        heartbeat_timer = Timer(5, rospy.ServiceProxy('/object_tracking/exit', Trigger))
+        heartbeat_timer.start()
+    rsp = SetBoolResponse()
+    rsp.success = msg.data
+
+    return rsp
+
+class ImgPerception():
+    # constructor
+    def __init__(self, img):
+        self._img = img
+        self._imgCopy = img.copy()
+        self._imgH, self._imgW = img.shape[:2]
+
+        self._maxArea = 0
+        self._maxAreaContour = 0
+
+    # getters/setters
+    @property
+    def maxArea(self):
+        return self._maxArea
+
+    @maxArea.setter
+    def maxArea(self, maxArea):
+        self._maxArea = maxArea
+
+    @property
+    def maxAreaContour(self):
+        return self._maxAreaContour
+
+    @property
+    def imgW(self):
+        return self._imgW
+
+    @property
+    def imgH(self):
+        return self._imgH
+
+    @property
+    def centerX(self):
+        return self._centerX
+
+    @property
+    def centerY(self):
+        return self._centerY
+
+    @property
+    def radius(self):
+        return self._radius
+
+    # member methods
+    def drawPlus(self):
+        cv2.line(self._img,
+                 (int(self._imgW / 2 - 10), int(self._imgH / 2)),
+                 (int(self._imgW / 2 + 10), int(self._imgH / 2)),
+                 (0, 255, 255), 2)
+
+        cv2.line(self._img,
+                 (int(self._imgW / 2), int(self._imgH / 2 - 10)),
+                 (int(self._imgW / 2), int(self._imgH / 2 + 10)),
+                 (0, 255, 255), 2)
+
+    def alterFrameAttributes(self):
+        self._resizedFrame = cv2.resize(self._imgCopy, size, interpolation=cv2.INTER_NEAREST)
+        self._frameLab = cv2.cvtColor(self._resizedFrame, cv2.COLOR_BGR2LAB)
+
+    def getFrameMask(self, targetColorRange):
+        return cv2.inRange(self._frameLab, tuple(targetColorRange['min']), tuple(targetColorRange['max']))
+
+    def erode(self, frame):
+        return cv2.erode(frame, cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3)))
+
+    def dilate(self, frame):
+        return cv2.dilate(frame, cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3)))
+
+    def getContours(self, frame):
+        return cv2.findContours(frame, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)[-2]
+
+    def updateAreaMaxContour(self, frame):
+        self._maxAreaContour, self._maxArea = getAreaMaxContour(frame)
+
+    def getCircleParams(self):
+        (centerX, centerY), radius = cv2.minEnclosingCircle(self._maxAreaContour)
+
+        self._centerX = int(Misc.map(centerX, 0, size[0], 0, self._imgW))
+        self._centerY = int(Misc.map(centerY, 0, size[1], 0, self._imgH))
+        self._radius = int(Misc.map(radius, 0, size[0], 0, self._imgW))
+
+    def drawCircle(self, targetColor):
+        cv2.circle(self._img, (int(self._centerX), int(self._centerY)), int(self._radius), range_rgb[targetColor], 2)
+
+if __name__ == '__main__':
+    rospy.init_node('object_tracking', log_level=rospy.DEBUG)
+    
+    joints_pub = rospy.Publisher('/servo_controllers/port_id_1/multi_id_pos_dur', MultiRawIdPosDur, queue_size=1)
+    
+    image_pub = rospy.Publisher('/object_tracking/image_result', Image, queue_size=1)  # register result image publisher
+
+    rgb_pub = rospy.Publisher('/sensor/rgb_led', Led, queue_size=1)
+    
+    enter_srv = rospy.Service('/object_tracking/enter', Trigger, enter_func)
+    exit_srv = rospy.Service('/object_tracking/exit', Trigger, exit_func)
+    running_srv = rospy.Service('/object_tracking/set_running', SetBool, set_running)
+    set_target_srv = rospy.Service('/object_tracking/set_target', SetTarget, set_target)
+    heartbeat_srv = rospy.Service('/object_tracking/heartbeat', SetBool, heartbeat_srv_cb)
+
+    debug = False
+    if debug:
+        rospy.sleep(0.2)
+        enter_func(1)
+        
+        msg = SetTarget()
+        msg.data = 'blue'
+        
+        set_target(msg)
+        start_running()
+
+    try:
+        rospy.spin()
+    except KeyboardInterrupt:
+        rospy.loginfo("Shutting down")
+    finally:
+        cv2.destroyAllWindows()
