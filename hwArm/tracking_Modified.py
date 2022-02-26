@@ -378,8 +378,13 @@ class ImgPerception():
     def getContours(self, frame):
         return cv2.findContours(frame, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)[-2]
 
-    def updateAreaMaxContour(self, frame):
-        self._maxAreaContour, self._maxArea = getAreaMaxContour(frame)
+    def updateAreaMaxContour(self, contours):
+        for c in contours:  # 历遍所有轮廓
+            contour_area_temp = math.fabs(cv2.contourArea(c))  # 计算轮廓面积
+            if contour_area_temp > self._maxArea:
+                self._maxArea = contour_area_temp
+                if contour_area_temp > 10:  # 只有在面积大于300时，最大面积的轮廓才是有效的，以过滤干扰
+                    self._maxAreaContour = c
 
     def getCircleParams(self):
         (centerX, centerY), radius = cv2.minEnclosingCircle(self._maxAreaContour)
