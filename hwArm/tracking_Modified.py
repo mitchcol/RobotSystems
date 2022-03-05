@@ -161,39 +161,36 @@ def run(img):
 
         # start_move appears to be a global variable that is initialized to True
         # if the image starts moving (and therefore the circle) we have to move the servos to keep the image in view
+        xPid = ArmMovement(x_pid, x_dis)
+        yPid = ArmMovement(y_pid, y_dis)
+        zPid = ArmMovement(z_pid, z_dis)
+
         if start_move:
             # setting the x starting point and finding where to go based on the center of the circle. X POS
-            x_pid.SetPoint = imgObj.imgW / 2.0  # 设定
-            x_pid.update(imgObj.centerX)  # 当前
-            dx = x_pid.output
-            x_dis += int(dx)  # 输出
-            x_dis = 200 if x_dis < 200 else x_dis
-            x_dis = 800 if x_dis > 800 else x_dis
+            xPid.setPoint = imgObj.imgW/2.0
+            xPid.update(imgObj.centerX)
+            xPid.addToDis(xPid.d)
+            xPid.clampDis(200, 800)
 
             # setting the y starting point and figuring out the y pos
-            y_pid.SetPoint = 900  # 设定
+            yPid.setPoint = 900
             if abs(imgObj.maxArea - 900) < 50:
                 imgObj.maxArea = 900
-            y_pid.update(imgObj.maxArea)  # 当前
-            dy = y_pid.output
-            y_dis += dy  # 输出
-            y_dis = 0.12 if y_dis < 0.12 else y_dis
-            y_dis = 0.25 if y_dis > 0.25 else y_dis
+            yPid.update(imgObj.maxArea)
+            yPid.addToDis(yPid.d)
+            yPid.clampDis(0.12, 0.25)
 
             # setting the z starting point and figuring out the z pos
-            z_pid.SetPoint = imgObj.imgH / 2.0
-            z_pid.update(imgObj.centerY)
-            dy = z_pid.output
-            z_dis += dy
-            z_dis = 0.22 if z_dis > 0.22 else z_dis
-            z_dis = 0.17 if z_dis < 0.17 else z_dis
+            zPid.setPoint = imgObj.imgH / 2.0
+            yPid.update(imgObj.centerY)
+            yPid.addToDis(yPid.d)
+            yPid.clampDis(0.17, 0.22)
 
-            
-            target = ik.setPitchRanges((0, round(y_dis, 4), round(z_dis, 4)), -90, -85, -95)
+            target = ik.setPitchRanges((0, round(yPid.dis, 4), round(zPid.dis, 4)), -90, -85, -95)
             if target:
                 servo_data = target[1]
                 bus_servo_control.set_servos(joints_pub, 20, (
-                    (3, servo_data['servo3']), (4, servo_data['servo4']), (5, servo_data['servo5']), (6, x_dis)))
+                    (3, servo_data['servo3']), (4, servo_data['servo4']), (5, servo_data['servo5']), (6, xPid.dis)))
     return img
 
 def image_callback(ros_image):
@@ -395,6 +392,50 @@ class ImgPerception():
 
     def drawCircle(self, targetColor):
         cv2.circle(self._img, (int(self._centerX), int(self._centerY)), int(self._radius), range_rgb[targetColor], 2)
+
+class ArmMovement():
+    # constructor
+    def __init__(self, pid: PID, dis):
+        self._pid = pid
+        self._dis = dis
+
+    # getters/setters
+    @property
+    def setPoint(self):
+        return self._pid.SetPoint
+
+    @setPoint.setter
+    def setPoint(self, point):
+        self._pid.SetPoint = point
+
+    @property
+    def d(self):
+        return self._d
+
+    @d.setter
+    def d(self, d):
+        self._d = d
+
+    @property
+    def dis(self):
+        return self._dis
+
+    @dis.setter
+    def dis(self, dis):
+        self._dis = dis
+
+    # member methods
+    def update(self, value):
+        self._pid.update(value)
+        self._d = self._pid.output
+
+    def addToDis(self, value):
+        self._d += value
+
+    def clampDis(self, lb, ub):
+        self._dis = lb if self._dis < lb else self._dis
+        self._dis = ub if self._dis > ub else self._dis
+
 
 if __name__ == '__main__':
     rospy.init_node('object_tracking', log_level=rospy.DEBUG)
