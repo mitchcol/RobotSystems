@@ -2,12 +2,9 @@
 import sys
 import cv2
 import time
-import Camera
-from math import sqrt
+
 # from LABConfig import *
-from ArmIK.Transform import *
-from ArmIK.ArmMoveIK import *
-import HiwonderSDK.Board as Board
+from armpi_fpv_kinematics.kinematics import ik_transform
 
 class Motion:
 	def __init__(self) -> None:
@@ -15,7 +12,7 @@ class Motion:
 		self.servo1 = 500
 
 		# IK solver and motion planner/exector
-		self.arm = ArmIK()
+		self.arm = ik_transform.ArmIK()
 
 		# Arm statuses
 		self.is_moving = False
@@ -32,7 +29,7 @@ class Motion:
 		}
 
 	def move_arm(self, x, y, z, a0, a1, a2):
-		self.arm.setPitchRangeMoving((x, y, z), a0, a1, a2)
+		self.arm.setPitchRanges((x, y, z), a0, a1, a2)
 		self.moving = True
 		time.sleep(0.2)
 		self.moving = False
