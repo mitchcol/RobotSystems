@@ -1,5 +1,5 @@
+#!/usr/bin/python3
 import sys
-sys.path.append('/home/aiden/RobotSystems/ArmPi/')
 import cv2
 import time
 import Camera
