@@ -193,7 +193,7 @@ def run(img):
 
 			# target = ik.setPitchRanges((0, round(yPid.dis, 4), round(zPid.dis, 4)), -90, -85, -95)
 			print(f"x_move:{x_move}, z_move:{z_move}")
-			target = ik.setPitchRanges((x_move, 0.10, z_move), -90, -95, -85)
+			target = ik.setPitchRanges((x_move, 0.10, z_move), -90, -100, -80)
 			print(f"target: {target}\n")
 
 			if target:
